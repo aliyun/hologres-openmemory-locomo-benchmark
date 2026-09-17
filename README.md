@@ -19,52 +19,32 @@ The LoCoMo benchmark evaluates memory systems across four distinct question cate
 
 ## Results
 
-### Table 1: Per-Run Summary
+### Evaluation Results
 
-| Run | Single-hop | Temporal | Multi-hop | Open-domain | Overall |
-|-----|-----------|----------|-----------|-------------|---------|
-| Run 1 | 95.12% | 97.20% | 97.52% | 82.29% | 95.19% |
-| Run 2 | 95.72% | 97.82% | 97.16% | 83.33% | 95.65% |
-| Run 3 | 95.24% | 97.82% | 96.10% | 79.17% | 94.94% |
-| Run 4 | 95.84% | 97.20% | 96.45% | 80.21% | 95.26% |
-| Run 5 | 95.36% | 97.20% | 96.45% | 82.29% | 95.13% |
-| **Average** | **95.46%** | **97.45%** | **96.74%** | **81.46%** | **95.23%** |
-
-### Table 2: Comparison with Other Systems
-
-| System | Single-hop | Multi-hop | Temporal | Open-domain | Overall |
-|--------|-----------|-----------|----------|-------------|---------|
-| **Hologres Open Memory** | **95.46%** | **96.74%** | **97.45%** | **81.46%** | **95.23%** |
-| Zep | 96.4% | 94.0% | 95.6% | 79.2% | 94.7% |
-| MemoryLake | 96.79% | 91.84% | 91.28% | 85.42% | 94.03% |
-| EverMemOS | 96.67% | 91.84% | 89.72% | 76.04% | 93.05% |
-| Mem0 | 94.6% | 95.4% | 92.5% | 82.3% | 92.5% |
-| ByteRover 2.0 | 95.4% | 85.1% | 94.4% | 77.2% | 92.2% |
-| Honcho | 84.0% | 88.2% | 77.1% | 93.2% | 89.9% |
-| MemOS | 92.51% | 88.65% | 85.05% | 69.79% | 88.83% |
-
-> **Note**: All scores are self-reported by each system. Evaluation conditions (answer LLM, judge LLM, prompt templates) may vary.
+| Category | Correct | Total | Score |
+|----------|---------|-------|-------|
+| Single-hop | 819 | 841 | 97.38% |
+| Temporal | 316 | 321 | 98.44% |
+| Multi-hop | 273 | 282 | 96.81% |
+| Open-domain | 83 | 96 | 86.46% |
+| **Overall** | **1491** | **1540** | **96.82%** |
 
 
 ## Key Highlights
 
-- **Overall score of 95.23%** — highest among compared systems
-- **Exceptional Temporal reasoning at 97.45%** — significantly outperforming both MemoryLake (91.28%) and EverMemOS (89.72%)
-- **Strong Multi-hop performance at 96.74%** — outperforming MemoryLake (91.84%) and EverMemOS (91.13%)
-- **Open-domain at 81.46%** — an area for improvement compared to MemoryLake (85.42%)
-- **Consistent performance across 5 runs** — ranging from 94.94% to 95.65%, demonstrating reliability and stability
+- **Overall score of 96.82%** across 1,540 evaluation questions
+- **Exceptional Temporal reasoning at 98.44%** — near-perfect accuracy on time-based reasoning tasks
+- **Strong Single-hop performance at 97.38%** — highly reliable direct fact recall
+- **Robust Multi-hop reasoning at 96.81%** — effective at connecting information across conversation sessions
+- **Open-domain at 86.46%** — solid integration of world knowledge with conversational context
 
 ## Reproducibility
 
 Raw evaluation results are available in this repository:
 
-- `locomo_result_1.json` — Run 1 results (1,540 questions)
-- `locomo_result_2.json` — Run 2 results (1,540 questions)
-- `locomo_result_3.json` — Run 3 results (1,540 questions)
-- `locomo_result_4.json` — Run 4 results (1,540 questions)
-- `locomo_result_5.json` — Run 5 results (1,540 questions)
+- `locomo_result.json` — Evaluation results (1,540 questions)
 
-Each JSON file contains an array of evaluation records with the following fields:
+The JSON file contains an array of evaluation records with the following fields:
 
 | Field | Description |
 |-------|-------------|
@@ -83,15 +63,7 @@ python calculate_scores.py
 
 ## Visualizations
 
-![Overall Score Comparison](images/overall_score_comparison.png)
-
 ![Score by Question Category](images/score_by_category.png)
-
-![Radar Chart](images/radar_chart.png)
-
-![Run Stability](images/run_stability.png)
-
-![Category Breakdown Heatmap](images/category_breakdown_heatmap.png)
 
 ## References
 

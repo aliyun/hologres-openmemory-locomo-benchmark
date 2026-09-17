@@ -2,9 +2,9 @@
 """
 Calculate LoCoMo benchmark scores for Hologres Open Memory.
 
-Reads all 5 locomo_result_*.json files and computes:
-- Per-category scores for each run
-- Overall averages across all runs
+Reads a single locomo_result.json file and computes:
+- Per-category scores (correct / total / percentage)
+- Overall score
 
 Usage:
     python calculate_scores.py
@@ -23,22 +23,21 @@ CATEGORY_NAMES = {
 }
 
 CATEGORY_ORDER = [1, 2, 3, 4]
-NUM_RUNS = 5
 
 
-def load_results(base_dir: str) -> list[list[dict]]:
-    """Load all result files and return list of runs."""
-    runs = []
-    for i in range(1, NUM_RUNS + 1):
-        filepath = os.path.join(base_dir, f"locomo_result_{i}.json")
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        runs.append(data)
-    return runs
+def load_results(base_dir: str) -> list[dict]:
+    """Load the single locomo_result.json file."""
+    filepath = os.path.join(base_dir, "locomo_result.json")
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    return data
 
 
-def calculate_category_scores(items: list[dict]) -> dict[int, float]:
-    """Calculate per-category accuracy for a list of items."""
+def calculate_category_scores(items: list[dict]) -> dict[int, tuple]:
+    """Calculate per-category accuracy for a list of items.
+
+    Returns a dict mapping category -> (correct, total, percentage).
+    """
     cat_correct = {}
     cat_total = {}
 
@@ -50,7 +49,9 @@ def calculate_category_scores(items: list[dict]) -> dict[int, float]:
     scores = {}
     for cat in CATEGORY_ORDER:
         if cat in cat_total and cat_total[cat] > 0:
-            scores[cat] = cat_correct[cat] / cat_total[cat] * 100
+            correct = cat_correct[cat]
+            total = cat_total[cat]
+            scores[cat] = (correct, total, correct / total * 100)
         else:
             scores[cat] = None
 
@@ -88,64 +89,40 @@ def format_score(score, width=9):
 def main():
     base_dir = Path(__file__).parent
 
-    # Load all runs
-    print("Loading result files...")
-    runs = load_results(str(base_dir))
-    print(f"  Loaded {len(runs)} runs, {len(runs[0])} questions per run")
+    # Load results
+    print("Loading result file...")
+    items = load_results(str(base_dir))
+    print(f"  Loaded {len(items)} questions")
 
     # =========================================================================
-    # Per-Run Category Scores
+    # Per-Category Scores
     # =========================================================================
-    print_header("PER-RUN CATEGORY SCORES")
+    print_header("CATEGORY SCORES")
 
-    run_scores = []  # List of (cat_scores_dict, overall)
+    cat_scores = calculate_category_scores(items)
 
-    header = f"{'Run':<8}"
-    for cat in CATEGORY_ORDER:
-        header += f" {CATEGORY_NAMES[cat]:>12}"
-    header += f" {'Overall':>10}"
+    header = f"{'Category':<14} {'Correct':>8} {'Total':>8} {'Score':>10}"
     print(header)
     print("-" * len(header))
 
-    for run_idx, run_data in enumerate(runs):
-        cat_scores = calculate_category_scores(run_data)
-        overall = calculate_overall_score(run_data)
-        run_scores.append((cat_scores, overall))
-
-        row = f"Run {run_idx + 1:<4}"
-        for cat in CATEGORY_ORDER:
-            row += f" {format_score(cat_scores[cat], 12)}"
-        row += f" {overall:>9.2f}%"
-        print(row)
-
-    # Calculate averages
-    print("-" * len(header))
-    avg_row = f"{'Average':<8}"
-    avg_cat_scores = {}
     for cat in CATEGORY_ORDER:
-        values = [s[0][cat] for s in run_scores if s[0][cat] is not None]
-        avg = sum(values) / len(values) if values else None
-        avg_cat_scores[cat] = avg
-        avg_row += f" {format_score(avg, 12)}"
-
-    avg_overall = sum(s[1] for s in run_scores) / len(run_scores)
-    avg_row += f" {avg_overall:>9.2f}%"
-    print(avg_row)
+        if cat_scores[cat] is not None:
+            correct, total, pct = cat_scores[cat]
+            print(f"  {CATEGORY_NAMES[cat]:<12} {correct:>8.0f} {total:>8} {pct:>9.2f}%")
+        else:
+            print(f"  {CATEGORY_NAMES[cat]:<12} {'N/A':>8} {'N/A':>8} {'N/A':>10}")
 
     # =========================================================================
-    # Summary Statistics
+    # Overall Score
     # =========================================================================
-    print_header("SUMMARY")
+    overall = calculate_overall_score(items)
 
-    print(f"  Overall Score (5-run average):  {avg_overall:.2f}%")
-    print(f"  Best Single Run:                {max(s[1] for s in run_scores):.2f}%")
-    print(f"  Worst Single Run:               {min(s[1] for s in run_scores):.2f}%")
-    print(f"  Score Range:                    {max(s[1] for s in run_scores) - min(s[1] for s in run_scores):.2f}%")
-    print()
-    print("  Per-Category Averages:")
-    for cat in CATEGORY_ORDER:
-        if avg_cat_scores[cat] is not None:
-            print(f"    {CATEGORY_NAMES[cat]:<12}  {avg_cat_scores[cat]:.2f}%")
+    print_header("OVERALL SCORE")
+
+    total_correct = sum(item["score"] for item in items)
+    total_items = len(items)
+    print(f"  Correct:  {total_correct:.0f} / {total_items}")
+    print(f"  Score:    {overall:.2f}%")
     print()
 
 
